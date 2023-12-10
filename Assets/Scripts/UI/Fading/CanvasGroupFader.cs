@@ -52,7 +52,7 @@ public class CanvasGroupFader : MonoBehaviour
         {
             StopCoroutine(fadeInCoroutine);
         }
-        fadeInCoroutine = StartCoroutine(UIFadeUtil.FadeOutcanvasToTransparent(canvasGroup, fadeInSpeed, callBack));
+        fadeInCoroutine = StartCoroutine(UIFadeUtil.FadeInCanvasToOpaque(canvasGroup, fadeInSpeed, callBack));
     }
 
     public void FadeOut(Action callBack = null)
@@ -62,7 +62,7 @@ public class CanvasGroupFader : MonoBehaviour
             StopCoroutine(fadeOutCoroutine);
         }
 
-        fadeOutCoroutine = StartCoroutine(UIFadeUtil.FadeInCanvasToOpaque(canvasGroup, fadeInSpeed, callBack));
+        fadeOutCoroutine = StartCoroutine(UIFadeUtil.FadeOutcanvasToTransparent(canvasGroup, fadeOutSpeed, callBack));
     }
 
     public void InstantOpaque()

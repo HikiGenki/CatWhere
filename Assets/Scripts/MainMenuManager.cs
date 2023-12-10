@@ -9,7 +9,7 @@ public enum MenuStates
     INFO
 }
 
-public class MainMenuUIManager : MonoBehaviour
+public class MainMenuManager : MonoBehaviour
 {
     #region Fields
 
@@ -41,13 +41,11 @@ public class MainMenuUIManager : MonoBehaviour
     #region Monobehavior
     private void Awake()
     {
-        //Init
         menuCanvas.alpha = 0f;
 
         canvases.Add(MenuStates.MAIN, menuCanvas);
         canvases.Add(MenuStates.INFO, infoCanvas);
 
-        //Hide all canvases
         foreach (var canvas in canvases)
         {
             UIFadeUtil.SetCanvasToTransparent(canvas.Value);
@@ -65,7 +63,7 @@ public class MainMenuUIManager : MonoBehaviour
     #region Public
     public void ToMain()
     {
-        if (inTransition)
+        if (!inTransition)
         {
             StartCoroutine(MenuChange(MenuStates.MAIN));
         }
@@ -73,7 +71,7 @@ public class MainMenuUIManager : MonoBehaviour
 
     public void ToInfo()
     {
-        if (inTransition)
+        if (!inTransition)
         {
             StartCoroutine(MenuChange(MenuStates.INFO));
         }
@@ -81,7 +79,7 @@ public class MainMenuUIManager : MonoBehaviour
 
     public void ToQuitGame()
     {
-        if (inTransition)
+        if (!inTransition)
         {
             StartCoroutine(QuitGameCoroutine());
         }
@@ -89,7 +87,7 @@ public class MainMenuUIManager : MonoBehaviour
 
     public void ToTargetLevel(string levelName)
     {
-        if (inTransition)
+        if (!inTransition)
         {
             StartCoroutine(GoToLevel(levelName));
         }

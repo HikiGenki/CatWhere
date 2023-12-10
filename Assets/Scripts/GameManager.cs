@@ -8,6 +8,9 @@ public class GameManager : MonoBehaviour
 
     public static GameManager Instance => instance;
 
+    [SerializeField]
+    private Gameplay gameplayManager;
+
     private void Awake()
     {
         if (instance == null)
@@ -20,5 +23,4 @@ public class GameManager : MonoBehaviour
             Destroy(gameObject);
         }
     }
-
 }
