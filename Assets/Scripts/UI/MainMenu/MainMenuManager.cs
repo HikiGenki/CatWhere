@@ -33,6 +33,8 @@ public class MainMenuManager : MonoBehaviour
     [SerializeField] 
     private float fadeSpeed = 30f;
 
+    private AudioManager audioManager;
+
     private Dictionary<MenuStates, CanvasGroup> canvases = new Dictionary<MenuStates, CanvasGroup>();
     private bool inTransition = false;
 
@@ -54,6 +56,8 @@ public class MainMenuManager : MonoBehaviour
 
     private IEnumerator Start()
     {
+        audioManager = AudioManager.Instance;
+
         //Fade in menu canvas group
         yield return new WaitForSeconds(initialWait);
         StartCoroutine(UIFadeUtil.FadeInCanvasToOpaque(menuCanvas, sceneLoadFadeSpeed));
@@ -73,6 +77,7 @@ public class MainMenuManager : MonoBehaviour
     {
         if (!inTransition)
         {
+            audioManager.PlaySfxButtonClick();
             StartCoroutine(MenuChange(MenuStates.INFO));
         }
     }
@@ -81,6 +86,7 @@ public class MainMenuManager : MonoBehaviour
     {
         if (!inTransition)
         {
+            audioManager.PlaySfxButtonClick();
             StartCoroutine(QuitGameCoroutine());
         }
     }
@@ -89,6 +95,7 @@ public class MainMenuManager : MonoBehaviour
     {
         if (!inTransition)
         {
+            audioManager.PlaySfxButtonClick();
             StartCoroutine(GoToLevel(levelName));
         }
     }

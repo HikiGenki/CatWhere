@@ -5,11 +5,28 @@ public class AudioManager : MonoBehaviour
 {
     public static AudioManager Instance;
 
+    [Header("Audio Sources")]
     [SerializeField]
     protected AudioSource bgmPlayer;
 
     [SerializeField]
     protected AudioSource sfxPlayer;
+
+    [Header("Audio Clips")]
+    [SerializeField]
+    protected AudioClip sfxButtonPress;
+
+    [SerializeField]
+    protected AudioClip sfxStartGame;
+
+    [SerializeField]
+    protected AudioClip sfxCorrectGuess;
+
+    [SerializeField]
+    protected AudioClip sfxWrongGuess;
+
+    [SerializeField]
+    protected AudioClip sfxGameOver;
 
     [Space]
     [SerializeField]
@@ -31,9 +48,22 @@ public class AudioManager : MonoBehaviour
         }
     }
 
-    protected void PlaySoundEffect(AudioClip clip)
+    public void SetSoundEffectVolume(float volume)
     {
-        sfxPlayer.PlayOneShot(clip);
+        if (sfxPlayer != null)
+        {
+            sfxPlayer.volume = volume;
+        }
+    }
+
+    #region BGM
+
+    public void SetBackgroundMusicVolume(float volume)
+    {
+        if (bgmPlayer != null)
+        {
+            bgmPlayer.volume = volume;
+        }
     }
 
     public void PlayBackgroundMusic(AudioClip clip)
@@ -76,20 +106,19 @@ public class AudioManager : MonoBehaviour
             StopCoroutine(coroutine);
         }
     }
+    #endregion
 
-    public void SetBackgroundMusicVolume(float volume)
+    #region Sfx
+    public void PlaySfxStartGame() => PlaySoundEffect(sfxStartGame);
+    public void PlaySfxCorrectGuess() => PlaySoundEffect(sfxCorrectGuess);
+    public void PlaySfxWrongGuess() => PlaySoundEffect(sfxWrongGuess);
+    public void PlaySfxButtonClick() => PlaySoundEffect(sfxButtonPress);
+    public void PlaySfxGameOver() => PlaySoundEffect(sfxGameOver);
+    
+    protected void PlaySoundEffect(AudioClip clip)
     {
-        if (bgmPlayer != null)
-        {
-            bgmPlayer.volume = volume;
-        }
+        sfxPlayer.PlayOneShot(clip);
     }
 
-    public void SetSoundEffectVolume(float volume)
-    {
-        if (sfxPlayer != null)
-        {
-            sfxPlayer.volume = volume;
-        }
-    }
+    #endregion
 }

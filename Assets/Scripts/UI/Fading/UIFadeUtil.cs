@@ -8,7 +8,7 @@ public static class UIFadeUtil
 {
     #region Fading of Canvas
 
-    public static IEnumerator FadeInCanvasToOpaque(CanvasGroup canvasGroup, float fadeSpeed, Action callback = null)
+    public static IEnumerator FadeInCanvasToOpaque(CanvasGroup canvasGroup, float fadeSpeed = 1f, Action callback = null)
     {
         while (canvasGroup.alpha < 1)
         {
@@ -23,7 +23,7 @@ public static class UIFadeUtil
         callback?.Invoke();
     }
 
-    public static IEnumerator FadeOutcanvasToTransparent(CanvasGroup canvasGroup, float fadeSpeed, Action callback = null)
+    public static IEnumerator FadeOutcanvasToTransparent(CanvasGroup canvasGroup, float fadeSpeed = 1f, Action callback = null)
     {
         canvasGroup.blocksRaycasts = false;
         canvasGroup.interactable = false;
@@ -31,6 +31,45 @@ public static class UIFadeUtil
         while (canvasGroup.alpha > 0)
         {
             canvasGroup.alpha -= Time.deltaTime * fadeSpeed;
+            yield return null;
+        }
+
+        canvasGroup.alpha = 0f;
+        callback?.Invoke();
+    }
+
+
+    public static IEnumerator FadeCanvasToOpaqueOverDuration(CanvasGroup canvasGroup, 
+        float duration = 1f, Action callback = null)
+    {
+        var timer = 0f;
+        while (timer < duration)
+        {
+            timer += Time.deltaTime;
+
+            canvasGroup.alpha = Mathf.Lerp(canvasGroup.alpha, 1f, timer / duration);
+            yield return null;
+        }
+
+        canvasGroup.alpha = 1f;
+
+        canvasGroup.blocksRaycasts = true;
+        canvasGroup.interactable = true;
+        callback?.Invoke();
+    }
+
+    public static IEnumerator FadecanvasToTransparentOverDuration(CanvasGroup canvasGroup, 
+        float duration = 1f, Action callback = null)
+    {
+        canvasGroup.blocksRaycasts = false;
+        canvasGroup.interactable = false;
+
+        var timer = 0f;
+        while (timer < duration)
+        {
+            timer += Time.deltaTime;
+
+            canvasGroup.alpha = Mathf.Lerp(canvasGroup.alpha, 0f, timer / duration);
             yield return null;
         }
 
@@ -55,7 +94,8 @@ public static class UIFadeUtil
 
     #region Fading of Image (a UI component)
 
-    public static IEnumerator FadeImageVisibility(bool fadeToVisible, Image image, float fadeSpeed, Action callback = null)
+    public static IEnumerator FadeImageVisibility(bool fadeToVisible, Image image, 
+        float fadeSpeed = 1f, Action callback = null)
     {
         Color c = image.color;
 

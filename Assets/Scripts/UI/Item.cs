@@ -6,7 +6,9 @@ public class Item : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 {
     private Button button;
 
-    private void Start()
+    public Button Button { get { return button; } }
+
+    private void Awake()
     {
         button = GetComponent<Button>();
 
@@ -22,12 +24,12 @@ public class Item : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 
     private void HandleButtonClick()
     {
-        Debug.Log("Button Clicked!");
+        GameManager.Instance.ClickedOnItem(this);
     }
 
     public void OnPointerEnter(PointerEventData eventData)
     {
-        HUD.Instance.SetName(gameObject.name);
+        HUD.Instance.DisplayHoverItemName(gameObject.name);
     }
 
     public void OnPointerExit(PointerEventData eventData)

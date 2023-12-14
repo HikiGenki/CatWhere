@@ -22,16 +22,13 @@ public class CustomButtonScript : MonoBehaviour, IPointerEnterHandler, IPointerE
 
     private void HandleButtonClick()
     {
-        Debug.Log("Button Clicked!");
     }
 
     public void OnPointerEnter(PointerEventData eventData)
     {
-        Debug.Log("Mouse Over!");
     }
 
     public void OnPointerExit(PointerEventData eventData)
     {
-        Debug.Log("Mouse Exit!");
     }
 }
