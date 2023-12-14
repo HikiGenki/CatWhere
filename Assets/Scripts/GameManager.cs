@@ -13,7 +13,7 @@ public class GameManager : MonoBehaviour
     private GameSettings settings;
 
     [SerializeField]
-    private Gameplay gameplay;
+    private RoomsManager roomsManager;
 
     [SerializeField]
     private GameReadyStartScreen readyStartScreen;
@@ -24,30 +24,28 @@ public class GameManager : MonoBehaviour
     private HUD hud;
     private AudioManager audioManager;
 
-    private float timer = 1f;
-    private float currentTimerSpeed;
-
+    private bool isEndlessMode;
     public static bool GameRunning;
 
-    private Item activeItem => gameplay.ActiveItem;
+    private int roomsCompleted = 0;
+    private float gameTime = 1f;
+    private float countDownTimer = 1f;
+    private float currentCountDownTimerSpeed;
+    private int currentRoomIndex;
+
+    private Item activeItem => roomsManager.ActiveItem;
+
+    public int GameTime => Mathf.FloorToInt(gameTime);
+    public int RoomsCompleted => roomsCompleted;
 
     #region Unity Events
 
     private void Awake()
     {
-        //Singleton
-        if (instance == null)
-        {
-            instance = this;
-            DontDestroyOnLoad(gameObject);
-        }
-        else
-        {
-            Destroy(gameObject);
-        }
+        instance = this;
 
         //Init
-        currentTimerSpeed = settings.timerSpeed;
+        currentCountDownTimerSpeed = settings.countDownTimerSpeed;
     }
 
     private IEnumerator Start()
@@ -55,7 +53,7 @@ public class GameManager : MonoBehaviour
         hud = HUD.Instance;
         audioManager = AudioManager.Instance;
 
-        ResetTimer();
+        Reset();
 
         yield return null;
     }
@@ -67,42 +65,55 @@ public class GameManager : MonoBehaviour
 
     #endregion
 
-    #region Main gameplay
+    private void Reset()
+    {
+        SetCountDownTimer(1f);
+        roomsCompleted = 0;
+    }
 
-    public void GoToRoom(int index)
+    #region Button click
+
+    public void OnClickStartGameInRoom(int roomIndex)
+    {
+        OnShowRoom(roomIndex);
+    }
+
+    public void OnClickStartGameInRapidMode()
+    {
+        isEndlessMode = true;
+        OnClickStartGameInRoom(0);
+    }
+
+    #endregion
+
+    #region Game Start Sequence
+
+    private void OnShowNextRoom()
+    {
+        OnShowRoom(roomsManager.NextRoomIndex);
+    }
+
+    private void OnShowRoom(int roomIndex)
     {
         GameRunning = false;
-        gameplay.ShowRoom(index, OnRoomLoadingFinished);
-        readyStartScreen.Play();
+
+        roomsManager.ShowRoom(roomIndex,
+            (roomsCompleted == 0) ? PlayGameStartSequence : RevealHUD);
     }
 
-    private void UpdateTimer()
+    private void PlayGameStartSequence()
     {
-        if (!GameRunning)
-        {
-            return;
-        }
-
-        hud.UpdateBar(timer);
-        hud.ToggleTimerPulse((timer < 0.3f));
-
-        if (timer <= 0f)
-        {
-            GameOver();
-        }
-
-        timer -= currentTimerSpeed * Time.deltaTime;
+        readyStartScreen.Play(RevealHUD);
     }
 
-    private void ShowNewItem()
+    private void RevealHUD()
     {
-        if (gameplay.ShowNewItem())
-        {
-            hud.DisplayGoalItem(activeItem);
-            ResetTimer();
-        }
+        hud.RevealHUDGroup(OnGamePlayStart);
     }
 
+    #endregion
+
+    #region Main gameplay
 
     public void ClickedOnItem(Item clickedItem)
     {
@@ -115,16 +126,54 @@ public class GameManager : MonoBehaviour
         {
             audioManager.PlaySfxCorrectGuess();
 
-            Debug.Log("Clicked on correct item");
-            currentTimerSpeed += settings.timerSpeedIncrease;
-            gameplay.FoundItem();
+            currentCountDownTimerSpeed += settings.timerSpeedIncrease;
+            roomsManager.FoundItem();
             ShowNewItem();
-            
+
         }
         else
         {
             audioManager.PlaySfxWrongGuess();
-            Debug.Log("Clicked on WRONG item");
+        }
+    }
+
+    private void UpdateTimer()
+    {
+        if (!GameRunning)
+        {
+            return;
+        }
+
+        hud.ToggleCountDownTimerPulse(countDownTimer < 0.45f);
+
+        if (countDownTimer <= 0f)
+        {
+            GameOver();
+        }
+
+        SetCountDownTimer(countDownTimer - currentCountDownTimerSpeed * Time.deltaTime);
+    }
+
+    private void ShowNewItem()
+    {
+        if (roomsManager.TryShowNewItem())
+        {
+            hud.DisplayGoalItem(activeItem);
+            SetCountDownTimer(1f);
+        }
+        else //Found all items
+        {
+            roomsCompleted++;
+            hud.HideHUDGroup();
+
+            if (isEndlessMode)
+            {
+                OnShowNextRoom();
+            }
+            else
+            {
+                SingleRoomModeGameWon();
+            }
         }
     }
 
@@ -132,30 +181,46 @@ public class GameManager : MonoBehaviour
 
     #region Start sequence
 
-    private void OnRoomLoadingFinished()
-    {
-        hud.RevealTimerGroup(StartTimer);
-    }
-
-    private void StartTimer()
+    private void OnGamePlayStart()
     {
         GameRunning = true;
+
         ShowNewItem();
     }
 
     #endregion
 
     #region GameOver
-    public void GameOver()
-    {
-        Debug.Log("Game over");
-        audioManager.PlaySfxGameOver();
 
+    private void SingleRoomModeGameWon()
+    {
+        Debug.Log("Game won");
         GameRunning = false;
-        gameOverScreen.Play(GoToNextLevel);
+        gameOverScreen.PlayGameWon(ReloadGame);
     }
 
-    private void GoToNextLevel()
+    private void EndlessGameModeRoomCompletion()
+    {
+        Debug.Log("Rapid Game Won");
+        GameRunning = false;
+        OnShowNextRoom();
+    }
+
+    private void GameOver()
+    {
+        if (isEndlessMode && roomsCompleted > 0)
+        {
+            gameOverScreen.PlayEndlessGameWon(ReloadGame);
+        }
+        GameRunning = false;
+        Debug.Log("Game over");
+
+        audioManager.PlaySfxGameOver();
+
+        gameOverScreen.PlayGameOver(ReloadGame);
+    }
+
+    private void ReloadGame()
     {
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
@@ -164,11 +229,13 @@ public class GameManager : MonoBehaviour
 
     #region Util
 
-    private void ResetTimer()
+    private void SetCountDownTimer(float value)
     {
-        timer = 1f;
-        hud.UpdateBar(timer);
+        countDownTimer = value;
+        hud.UpdateCountDownBar(countDownTimer);
     }
-  
+
+    private bool firstTimeStartingGame => !isEndlessMode || roomsCompleted == 0;
+
     #endregion
 }

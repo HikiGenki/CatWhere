@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Gameplay : MonoBehaviour
+public class RoomsManager : MonoBehaviour
 {
     [SerializeField]
     private List<Room> rooms;
@@ -35,6 +35,8 @@ public class Gameplay : MonoBehaviour
         hud = HUD.Instance;    
     }
 
+    public int NextRoomIndex => (activeRoomIndex + 1) % TotalRoomsCount;
+
     public void ShowRoom(int index, Action onComplete)
     {
         if (!inTransition && index != activeRoomIndex)
@@ -59,7 +61,7 @@ public class Gameplay : MonoBehaviour
 
         yield return UIFadeUtil.FadeInCanvasToOpaque(activeRoom.itemsRoot, fadeSpeed);
         yield return UIFadeUtil.FadeInCanvasToOpaque(activeRoom.bg, fadeSpeed);
-        hud.RevealTimerGroup();
+        hud.RevealHUDGroup();
 
         inTransition = false;
 
@@ -68,5 +70,5 @@ public class Gameplay : MonoBehaviour
 
     public void FoundItem() => activeRoom.FoundItemItem();
 
-    public bool ShowNewItem() => activeRoom.TryShowNewItem();
+    public bool TryShowNewItem() => activeRoom.TryShowNewItem();
 }

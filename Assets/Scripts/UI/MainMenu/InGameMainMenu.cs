@@ -1,5 +1,6 @@
 using System.Collections;
 using UnityEngine;
+using TMPro;
 
 [RequireComponent(typeof(Animator))]
 [RequireComponent(typeof(CanvasGroup))]
@@ -10,6 +11,7 @@ public class InGameMainMenu : MonoBehaviour
 
     private GameManager gm;
 
+    [Header("Canvas Groups")]
     [SerializeField]
     private CanvasGroup rootCanvas;
     [SerializeField]
@@ -18,6 +20,14 @@ public class InGameMainMenu : MonoBehaviour
     private CanvasGroup canvasInfo;
     [SerializeField]
     private CanvasGroup canvasLevelSelection;
+
+    [Header("Previous Completion Times")]
+    [SerializeField]
+    private TextMeshProUGUI game1Time;
+    [SerializeField]
+    private TextMeshProUGUI game2Time;
+    [SerializeField]
+    private TextMeshProUGUI game3Time;
 
     private Animator animator;
     private AudioManager audioManager;
@@ -44,6 +54,13 @@ public class InGameMainMenu : MonoBehaviour
     {
         gm = GameManager.Instance;
         audioManager = AudioManager.Instance;
+
+        Debug.Log("convert 30 to minute sec " + StringUtil.SecondsToMinuteSeconds(30));
+        Debug.Log("convert 120 to minute sec " + StringUtil.SecondsToMinuteSeconds(120));
+
+        game1Time.text = StringUtil.SecondsToMinuteSeconds(PlayerPrefs.GetInt("Game1Time", 0));
+        game2Time.text = StringUtil.SecondsToMinuteSeconds(PlayerPrefs.GetInt("Game2Time", 0));
+        game3Time.text = StringUtil.SecondsToMinuteSeconds(PlayerPrefs.GetInt("Game3Time", 0));
 
         ZoomIn();
     }
@@ -121,7 +138,7 @@ public class InGameMainMenu : MonoBehaviour
         StartCoroutine(UIFadeUtil.FadeOutcanvasToTransparent(rootCanvas, fadeSpeed));
         yield return UIFadeUtil.FadeOutcanvasToTransparent(canvasLevelSelection, fadeSpeed);
 
-        gm.GoToRoom(targetRoomIndex);
+        gm.OnClickStartGameInRoom(targetRoomIndex);
         transitioning = false;
     }
 

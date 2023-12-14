@@ -12,18 +12,22 @@ public class AudioManager : MonoBehaviour
     [SerializeField]
     protected AudioSource sfxPlayer;
 
-    [Header("Audio Clips")]
+    [Header("Click")]
     [SerializeField]
     protected AudioClip sfxButtonPress;
+
+    [SerializeField]
+    protected AudioClip sfxCorrectGuess;
+
+    [Header("Events")]
+    [SerializeField]
+    protected AudioClip sfxWrongGuess;
 
     [SerializeField]
     protected AudioClip sfxStartGame;
 
     [SerializeField]
-    protected AudioClip sfxCorrectGuess;
-
-    [SerializeField]
-    protected AudioClip sfxWrongGuess;
+    protected AudioClip sfxGameWon;
 
     [SerializeField]
     protected AudioClip sfxGameOver;
@@ -113,8 +117,9 @@ public class AudioManager : MonoBehaviour
     public void PlaySfxCorrectGuess() => PlaySoundEffect(sfxCorrectGuess);
     public void PlaySfxWrongGuess() => PlaySoundEffect(sfxWrongGuess);
     public void PlaySfxButtonClick() => PlaySoundEffect(sfxButtonPress);
+    public void PlaySfxGameWon() => PlaySoundEffect(sfxGameWon);
     public void PlaySfxGameOver() => PlaySoundEffect(sfxGameOver);
-    
+
     protected void PlaySoundEffect(AudioClip clip)
     {
         sfxPlayer.PlayOneShot(clip);

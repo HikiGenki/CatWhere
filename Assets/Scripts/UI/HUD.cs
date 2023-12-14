@@ -1,4 +1,5 @@
 using System;
+using System.Text;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
@@ -7,14 +8,17 @@ public class HUD : MonoBehaviour
 {
     public static HUD Instance;
 
-    [Header("HUD")]
+    [Header("Goal")]
     [SerializeField]
     private TextMeshProUGUI goalItemText;
 
     [SerializeField]
+    private Animator clockAnimator;
+
+    [SerializeField]
     private Image goalItemImage;
 
-    [Space]
+    [Header("Timer")]
     [SerializeField]
     private CanvasGroup timerGroup;
 
@@ -27,25 +31,39 @@ public class HUD : MonoBehaviour
     [SerializeField]
     private Image timerBar;
 
+    [SerializeField]
+    private TextMeshProUGUI timerText;
+
     [Header("Pulsing")]
     private float pulseSpeed = 5f;
     private Color pulseColor = Color.red;
+    private Color startColor;
 
     private GameManager GM;
+    private StringBuilder sb;
 
     //Timer pulse
     private bool pulseOn;
-    private float pulseTimer = TimerStartValue;
+    private float pulseTimer;
 
-    //The lowest point on sin curve
-    private const float TimerStartValue = Mathf.PI * 1.5f;
+    //Animator hash
+    private readonly int PlayHash = Animator.StringToHash("Play");
+    private readonly int StopHash = Animator.StringToHash("Stop");
 
     #region Unity Events
 
     private void Awake()
     {
         Instance = this;
-        Reset();
+
+        sb = new StringBuilder();
+
+        startColor = timerBar.color;
+        timerBar.fillAmount = 1f;
+
+        goalItemText.text = "";
+        goalItemImage.enabled = false;
+
         UIFadeUtil.SetCanvasToTransparent(timerGroup);
     }
 
@@ -58,7 +76,7 @@ public class HUD : MonoBehaviour
     {
         if (pulseOn && GameManager.GameRunning)
         {
-            pulseTimer += Time.deltaTime * pulseSpeed;
+            pulseTimer += Time.deltaTime;
             UpdateTimerPulseColor();
         }
     }
@@ -67,47 +85,65 @@ public class HUD : MonoBehaviour
 
     #region Timer bar
 
-    public void RevealTimerGroup(Action callback = null)
+    public void RevealHUDGroup(Action callback = null)
     {
         StartCoroutine(UIFadeUtil.FadeInCanvasToOpaque(timerGroup, 1f, callback));
     }
 
-    private void UpdateTimerPulseColor()
+    public void HideHUDGroup(Action callback = null)
     {
-        timerBar.color = Color.Lerp(Color.white, pulseColor, Mathf.Sin(pulseTimer) * 0.5f + 0.5f);
+        StartCoroutine(UIFadeUtil.FadeOutcanvasToTransparent(timerGroup, 1f, callback));
     }
 
-    public void ToggleTimerPulse(bool setActive)
+    private void UpdateTimerPulseColor()
+    {
+        timerBar.color = Color.Lerp(startColor, pulseColor, 
+            Mathf.Abs(Mathf.Sin(pulseTimer * pulseSpeed)));
+    }
+
+    public void ToggleCountDownTimerPulse(bool setActive)
     {
         if (!pulseOn && setActive)
         {
+            clockAnimator.Play(PlayHash);
             pulseOn = true;
+            pulseTimer = 0f;
             UpdateTimerPulseColor();
         }
 
         if (pulseOn && !setActive)
         {
+            clockAnimator.CrossFade(StopHash, 1f);
             pulseOn = false;
-            pulseTimer = TimerStartValue;
+            pulseTimer = 0f;
             UpdateTimerPulseColor();
         }
     }
 
-    public void UpdateBar(float percentage)
+    public void UpdateCountDownBar(float percentage)
     {
         timerBar.fillAmount = percentage;
     }
 
     #endregion
 
-    public void Reset()
+    #region Text text
+    
+    public void SetTimerText(int sec, int miliSect)
     {
-        timerBar.fillAmount = 1f;
-        pulseTimer = TimerStartValue;
-
-        goalItemText.text = "";
-        goalItemImage.enabled = false;
+        sb.Clear();
+        sb.Append(sec.ToString("D2")).
+            Append(":").
+            Append(miliSect.ToString());
+        timerText.text = sb.ToString();
     }
+
+    public void SetScore(int score)
+    {
+        scoreText.text = score.ToString();
+    }
+
+    #endregion
 
     public void DisplayHoverItemName(string name)
     {
